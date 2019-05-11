@@ -1,8 +1,8 @@
 #!/bin/bash
 
 CLASS_NAME="DeadEnds"
-INPUT_FOLDER="/usr/local/cs417/instacart_2017_05_01"
-OUTPUT_FOLDER="output"
+INPUT_FOLDER="/usr/local/cs417/wikipedia"
+OUTPUT_FOLDER="deadends-output"
 
 hadoop com.sun.tools.javac.Main $CLASS_NAME.java
 rm -rf output

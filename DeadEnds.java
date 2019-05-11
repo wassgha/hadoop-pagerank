@@ -31,16 +31,16 @@ public class DeadEnds {
     public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
       String[] parsed = value.toString().split(" ");
       // Origin node (1 out link)
-      nodeId.set(Integer.parseInt(list[0]));
+      nodeId.set(Integer.parseInt(parsed[0]));
       context.write(nodeId, one);
       // Destination node (0 out link)
-      nodeId.set(Integer.parseInt(list[1]));
+      nodeId.set(Integer.parseInt(parsed[1]));
       context.write(nodeId, zero);
     }
   }
 
   public static class OutDegreeReducer extends Reducer<IntWritable, IntWritable, IntWritable, IntWritable> {
-    private IntWritable result = new IntWritable();
+    private IntWritable outDegree = new IntWritable();
 
     public void reduce(IntWritable key, Iterable<IntWritable> values, Context context)
     throws IOException, InterruptedException {
@@ -48,13 +48,13 @@ public class DeadEnds {
       for (IntWritable val : values) {
         sum += val.get();
       }
-      result.set(sum);
-      context.write(key, result);
+      outDegree.set(sum);
+      context.write(key, outDegree);
     }
   }
 
   public static class NullOutDegreeReducer extends Reducer<IntWritable, IntWritable, IntWritable, IntWritable> {
-    private IntWritable result = new IntWritable();
+    private IntWritable outDegree = new IntWritable();
 
     public void reduce(IntWritable key, Iterable<IntWritable> values, Context context)
     throws IOException, InterruptedException {
@@ -63,14 +63,14 @@ public class DeadEnds {
         sum += val.get();
       }
       if (sum == 0) {
-        result.set(sum);
-        context.write(key, result);
+        outDegree.set(sum);
+        context.write(key, outDegree);
       }
     }
   }
 
   public static void main(String[] args) throws Exception {
-    boolean USE_EXCERPT = true
+    boolean USE_EXCERPT = false;
     String NODES_FILE_NAME  = "wiki-topcats" + (USE_EXCERPT ? ".excerpt" : "") + ".txt";
     String NAMES_FILE_NAME  = "wiki-topcats-page-names" + (USE_EXCERPT ? ".excerpt" : "") + ".txt";
     String CATS_FILE_NAME   = "wiki-topcats-categories" + (USE_EXCERPT ? ".excerpt" : "") + ".txt";
@@ -88,7 +88,7 @@ public class DeadEnds {
     job1.setOutputKeyClass(IntWritable.class);
     job1.setOutputValueClass(IntWritable.class);
     FileInputFormat.addInputPath(job1, nodesInputPath);
-    FileOutputFormat.setOutputPath(job1, namesInputPath);
+    FileOutputFormat.setOutputPath(job1, outputPath);
     System.exit(job1.waitForCompletion(true) ? 0 : 1);
   }
 }
