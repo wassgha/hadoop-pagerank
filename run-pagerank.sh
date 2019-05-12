@@ -3,7 +3,7 @@
 # INPUT_FOLDER="/usr/local/cs417/wikipedia"
 INPUT_FOLDER="input"
 INTERMEDIATE_FOLDER="intermediate"
-OUTPUT_FOLDER="pagerank-output"
+OUTPUT_FOLDER="pagerank-output-with-taxation"
 ITERATIONS=10
 
 hadoop com.sun.tools.javac.Main PageRank.java

@@ -33,6 +33,7 @@ public class PageRank {
   final static String   NAMES_FILE_NAME   = "wiki-topcats-page-names" + (USE_EXCERPT ? ".excerpt" : "") + ".txt";
   final static String   CATS_FILE_NAME    = "wiki-topcats-categories" + (USE_EXCERPT ? ".excerpt" : "") + ".txt";
   final static double   NUMBER_OF_NODES   = 1791489;
+  final static double   BETA = 1.0;
 
   public static class Node implements Writable {
     public Integer id;
@@ -178,7 +179,7 @@ public class PageRank {
         if (pageRankOrNode.isNode()) {
           m = Node.clone(pageRankOrNode);
         } else {
-          pageRank += pageRankOrNode.pageRank;
+          pageRank += BETA * pageRankOrNode.pageRank + (1 - BETA) / NUMBER_OF_NODES;
         }
       }
       if (m != null) {
