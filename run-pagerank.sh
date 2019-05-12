@@ -1,11 +1,13 @@
 #!/bin/bash
 
-CLASS_NAME="PageRank"
 # INPUT_FOLDER="/usr/local/cs417/wikipedia"
 INPUT_FOLDER="input"
+INTERMEDIATE_FOLDER="intermediate"
 OUTPUT_FOLDER="pagerank-output"
+ITERATIONS=10
 
-hadoop com.sun.tools.javac.Main $CLASS_NAME.java
+hadoop com.sun.tools.javac.Main PageRank.java
 rm -rf $OUTPUT_FOLDER
-jar cf $CLASS_NAME.jar $CLASS_NAME*.class
-hadoop jar $CLASS_NAME.jar $CLASS_NAME $INPUT_FOLDER $OUTPUT_FOLDER
+rm -rf ${INTERMEDIATE_FOLDER}_*
+jar cf PageRank.jar PageRank*.class
+hadoop jar PageRank.jar PageRank $ITERATIONS $INPUT_FOLDER $INTERMEDIATE_FOLDER $OUTPUT_FOLDER
