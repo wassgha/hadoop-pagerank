@@ -22,6 +22,12 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 public class DeadEnds {
+  // Constants
+  final static boolean   USE_EXCERPT       = false;
+  final static String    NODES_FILE_NAME   = "wiki-topcats" + (USE_EXCERPT ? ".excerpt" : "") + ".txt";
+  final static String    NAMES_FILE_NAME   = "wiki-topcats-page-names" + (USE_EXCERPT ? ".excerpt" : "") + ".txt";
+  final static String    CATS_FILE_NAME    = "wiki-topcats-categories" + (USE_EXCERPT ? ".excerpt" : "") + ".txt";
+
   public static class OutLinkMapper extends Mapper<LongWritable, Text, IntWritable, IntWritable> {
 
     private IntWritable nodeId = new IntWritable();
@@ -70,11 +76,6 @@ public class DeadEnds {
   }
 
   public static void main(String[] args) throws Exception {
-    boolean USE_EXCERPT = false;
-    String NODES_FILE_NAME  = "wiki-topcats" + (USE_EXCERPT ? ".excerpt" : "") + ".txt";
-    String NAMES_FILE_NAME  = "wiki-topcats-page-names" + (USE_EXCERPT ? ".excerpt" : "") + ".txt";
-    String CATS_FILE_NAME   = "wiki-topcats-categories" + (USE_EXCERPT ? ".excerpt" : "") + ".txt";
-
     Path nodesInputPath   = new Path(args[0] + '/' + NODES_FILE_NAME);
     Path namesInputPath   = new Path(args[0] + '/' + NAMES_FILE_NAME);
     Path outputPath       = new Path(args[1]);
