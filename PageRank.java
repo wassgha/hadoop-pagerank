@@ -201,6 +201,19 @@ public class PageRank {
     }
   }
 
+  // Source: https://stackoverflow.com/questions/11670953/reverse-sorting-reducer-keys
+  public static class ReverseSortComparator extends WritableComparator {
+    protected ReverseSortComparator() {
+      super(IntWritable.class, true);
+    }
+
+    @SuppressWarnings("rawtypes")
+    @Override
+    public int compare(WritableComparable a, WritableComparable b) {
+      return -1 * ((IntWritable) a).compareTo((IntWritable) b);
+    }
+  }
+
   public static void main(String[] args) throws Exception {
     int numIterations           = Integer.parseInt(args[0]);
     Path nodesInputPath         = new Path(args[1] + '/' + NODES_FILE_NAME);
@@ -255,6 +268,7 @@ public class PageRank {
     result.setMapOutputValueClass(IntWritable.class);
     result.setOutputKeyClass(IntWritable.class);
     result.setOutputValueClass(DoubleWritable.class);
+    result.setSortComparatorClass(ReverseSortComparator.class);
     FileInputFormat.addInputPath(result, intermediateOutputPath);
     FileOutputFormat.setOutputPath(result, outputPath);
     result.waitForCompletion(true);
