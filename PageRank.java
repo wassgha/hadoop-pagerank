@@ -188,17 +188,23 @@ public class PageRank {
     }
   }
 
-  public static class SortMapper extends Mapper<IntWritable, Node, DoubleWritable, IntWritable> {
-    public void map(IntWritable nodeId, Node node, Context context) throws IOException, InterruptedException {
-      context.write(new DoubleWritable(node.pageRank), nodeId);
+  public static class SortMapper extends Mapper<LongWritable, Text, DoubleWritable, Text> {
+    Text rest = new Text();
+    DoubleWritable pageRank = new DoubleWritable();
+
+    public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
+      String[] parsed = value.toString().split("	", 2);
+      pageRank.set(Double.parseDouble(parsed[0]));
+      rest.set(parsed[1]);
+      context.write(pageRank, rest);
     }
   }
 
-  public static class SortReducer extends Reducer<DoubleWritable, IntWritable, IntWritable, Text> {
-    public void reduce(DoubleWritable pageRank, Iterable<IntWritable> nodeIds, Context context)
+  public static class SortReducer extends Reducer<DoubleWritable, Text, Text, Text> {
+    public void reduce(DoubleWritable pageRank, Iterable<Text> rests, Context context)
     throws IOException, InterruptedException {
-      for (IntWritable nodeId: nodeIds) {
-        context.write(nodeId, new Text(String.format("%.9f", pageRank.get())));
+      for (Text rest: rests) {
+        context.write(rest, new Text(String.format("%.9f", pageRank.get())));
       }
     }
   }
@@ -228,30 +234,29 @@ public class PageRank {
     }
   }
 
-  public static class PageRanksMapper extends Mapper<LongWritable, Text, IntWritable, Text> {
+  public static class PageRanksMapper extends Mapper<IntWritable, Node, IntWritable, Text> {
     IntWritable id = new IntWritable();
     Text pageRank = new Text();
 
-    public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
-      String[] parsed = value.toString().split("	", 2);
-      id.set(Integer.parseInt(parsed[0]));
-      pageRank.set("pr_" + parsed[1]);
-      context.write(id, pageRank);
+    public void map(IntWritable nodeId, Node node, Context context) throws IOException, InterruptedException {
+      pageRank.set("pr_" + String.format("%.9f", node.pageRank));
+      context.write(nodeId, pageRank);
     }
   }
 
-  public static class NamesReducer extends Reducer<IntWritable, Text, IntWritable, Text> {
+  public static class NamesReducer extends Reducer<IntWritable, Text, Text, Text> {
     public void reduce(IntWritable nodeId, Iterable<Text> pr_or_names, Context context)
     throws IOException, InterruptedException {
-      String result = "";
+      String name = "";
+      String pageRank = "";
       for (Text pr_or_name: pr_or_names) {
         if (pr_or_name.toString().startsWith("pr_")) {
-          result += pr_or_name.toString().replace("pr_", "");
+          pageRank = pr_or_name.toString().replace("pr_", "");
         } else if (pr_or_name.toString().startsWith("name_")) {
-          result = pr_or_name.toString().replace("name_", "") + " " + result;
+          name = pr_or_name.toString().replace("name_", "");
         }
       }
-      context.write(nodeId, new Text(result));
+      context.write(new Text(pageRank), new Text(nodeId + " " + name));
     }
   }
 
@@ -297,24 +302,6 @@ public class PageRank {
       iteration.waitForCompletion(true);
     }
 
-    // Sorting step:
-    // Sorts nodes by their page rank
-    Configuration sortingConf = new Configuration();
-    Job sorting = Job.getInstance(sortingConf, "sorting");
-    sorting.setJarByClass(PageRank.class);
-    sorting.setMapperClass(SortMapper.class);
-    sorting.setReducerClass(SortReducer.class);
-    sorting.setInputFormatClass(SequenceFileInputFormat.class);
-    sorting.setMapOutputKeyClass(DoubleWritable.class);
-    sorting.setMapOutputValueClass(IntWritable.class);
-    sorting.setOutputKeyClass(IntWritable.class);
-    sorting.setOutputValueClass(Text.class);
-    sorting.setSortComparatorClass(ReverseSortComparator.class);
-    FileInputFormat.addInputPath(sorting, intermediateOutputPath);
-    intermediateOutputPath = new Path(intermediateFolder + "_" + (numIterations + 1));
-    FileOutputFormat.setOutputPath(sorting, intermediateOutputPath);
-    sorting.waitForCompletion(true);
-
     // Naming step:
     // Adds names to the result and outputs the node id, its name and its pagerank
     Configuration namingConf = new Configuration();
@@ -323,12 +310,30 @@ public class PageRank {
     naming.setReducerClass(NamesReducer.class);
     naming.setMapOutputKeyClass(IntWritable.class);
     naming.setMapOutputValueClass(Text.class);
-    naming.setOutputKeyClass(IntWritable.class);
+    naming.setOutputKeyClass(Text.class);
     naming.setOutputValueClass(Text.class);
-    MultipleInputs.addInputPath(naming, intermediateOutputPath, TextInputFormat.class, PageRanksMapper.class);
+    MultipleInputs.addInputPath(naming, intermediateOutputPath, SequenceFileInputFormat.class, PageRanksMapper.class);
+    intermediateOutputPath = new Path(intermediateFolder + "_" + (numIterations + 1));
     MultipleInputs.addInputPath(naming, namesInputPath, TextInputFormat.class, NamesMapper.class);
-    FileOutputFormat.setOutputPath(naming, outputPath);
+    FileOutputFormat.setOutputPath(naming, intermediateOutputPath);
     naming.waitForCompletion(true);
+
+    // Sorting step:
+    // Sorts nodes by their page rank
+    Configuration sortingConf = new Configuration();
+    Job sorting = Job.getInstance(sortingConf, "sorting");
+    sorting.setJarByClass(PageRank.class);
+    sorting.setMapperClass(SortMapper.class);
+    sorting.setReducerClass(SortReducer.class);
+    sorting.setMapOutputKeyClass(DoubleWritable.class);
+    sorting.setMapOutputValueClass(Text.class);
+    sorting.setOutputKeyClass(Text.class);
+    sorting.setOutputValueClass(Text.class);
+    sorting.setSortComparatorClass(ReverseSortComparator.class);
+    FileInputFormat.addInputPath(sorting, intermediateOutputPath);
+    FileOutputFormat.setOutputPath(sorting, outputPath);
+    sorting.waitForCompletion(true);
+
     System.exit(0);
   }
 }
