@@ -1,4 +1,4 @@
-### Wikipedia Corpus Dataset PageRank/TopicRank Calculation
+### Wikipedia PageRank/TopicRank Calculation
 
 This assignment aims to calculate PageRank and TopicRank for the core ["Wikipedia corpus"](https://www.instacart.com/datasets/grocery-shopping-2017) obtained through the ["Stanford Network Analysis Project"](https://snap.stanford.edu/data/wiki-topcats.html) using Hadoop and AWS Elastic MapReduce. 
 
@@ -15,15 +15,15 @@ To the run the programs, we have included small utility programs named `run-dead
 1.  Give the program execution privileges by using
 
 ```
-chmod +x run-xxxxxxxxx.sh
+chmod +x run-{deadends | pagerank | topicrank }.sh
 ```
 
-2.  Make sure the `/usr/local/cs417/wikipedia` file exists on your computer or change it in `run-xxxxxxxxx.sh`
+2.  Make sure the `/usr/local/cs417/wikipedia` file exists on your computer or change it in `run-{deadends | pagerank | topicrank }.sh`
 
 3.  Execute the utility using
 
 ```
-./run-xxxxxxxxx.sh
+./run-{deadends | pagerank | topicrank }.sh
 ```
 
 #### Output
