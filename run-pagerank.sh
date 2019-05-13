@@ -1,7 +1,6 @@
 #!/bin/bash
 
-# INPUT_FOLDER="/usr/local/cs417/wikipedia"
-INPUT_FOLDER="input"
+INPUT_FOLDER="/usr/local/cs417/wikipedia"
 INTERMEDIATE_FOLDER="intermediate"
 OUTPUT_FOLDER="pagerank-output-with-taxation"
 ITERATIONS=10
